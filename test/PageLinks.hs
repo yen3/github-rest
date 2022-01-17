@@ -16,6 +16,9 @@ import Test.Tasty.QuickCheck
 
 import GitHub.REST.PageLinks
 
+baseUrl :: Text
+baseUrl = "https://api.github.com"
+
 tests :: [TestTree]
 tests =
   [ testProperty "parsePageLinks" $
@@ -29,7 +32,7 @@ tests =
               , mkPageLink "last" <$> pageLast
               ]
 
-        return $ parsePageLinks (Text.intercalate ", " pageLinks) === PageLinks{..}
+        return $ parsePageLinks baseUrl (Text.intercalate ", " pageLinks) === PageLinks{..}
   ]
 
 mkPageLink :: Text -> Text -> Text

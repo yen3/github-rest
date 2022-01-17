@@ -25,6 +25,7 @@ module GitHub.REST.Monad (
 
   -- * GitHubSettings
   GitHubSettings (..),
+  defaultGithubSettings,
 
   -- * GitHubT
   GitHubT,
@@ -55,18 +56,11 @@ import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types (hAccept, hAuthorization, hUserAgent)
 import UnliftIO.Exception (Exception, throwIO)
 
-#if !MIN_VERSION_base(4,13,0)
-import Control.Monad.Fail (MonadFail)
-#endif
-#if !MIN_VERSION_base(4,11,0)
-import Data.Monoid ((<>))
-#endif
-
 import GitHub.REST.Auth (Token, fromToken)
 import GitHub.REST.Endpoint (GHEndpoint (..), endpointPath, renderMethod)
 import GitHub.REST.KeyValue (kvToValue)
 import GitHub.REST.Monad.Class
-import GitHub.REST.PageLinks (PageLinks, parsePageLinks)
+import GitHub.REST.PageLinks (PageLinks, parsePageLinks, rstripUrl)
 
 {- GitHubSettings -}
 
@@ -78,6 +72,16 @@ data GitHubSettings = GitHubSettings
   , -- | The media type will be sent as: application/vnd.github.VERSION+json. For the standard
     -- API endpoints, "v3" should be sufficient here. See https://developer.github.com/v3/media/
     apiVersion :: ByteString
+  , -- | The Github API Url. Change it when using Github Enterprise
+    baseUrl :: Text
+  }
+
+defaultGithubSettings :: GitHubSettings
+defaultGithubSettings = GitHubSettings
+  { token = Nothing
+  , userAgent = "haskell/github-rest"
+  , apiVersion = "v3"
+  , baseUrl = "https://api.github.com"
   }
 
 {- GitHubManager -}
@@ -103,7 +107,7 @@ queryGitHubPageIO GitHubManager{..} ghEndpoint = do
   let GitHubSettings{..} = ghSettings
 
   let request =
-        (parseRequest_ $ Text.unpack $ ghUrl <> endpointPath ghEndpoint)
+        (parseRequest_ $ Text.unpack $ rstripUrl baseUrl <> endpointPath ghEndpoint)
           { method = renderMethod ghEndpoint
           , requestHeaders =
               [ (hAccept, "application/vnd.github." <> apiVersion <> "+json")
@@ -123,7 +127,7 @@ queryGitHubPageIO GitHubManager{..} ghEndpoint = do
       -- In this case, pretend like the server sent back an encoded version of the unit type,
       -- so that `queryGitHub endpoint` would be typed to `m ()`.
       nonEmptyBody = if ByteStringL.null body then encode () else body
-      pageLinks = maybe mempty parsePageLinks . lookupHeader "Link" $ response
+      pageLinks = maybe mempty (parsePageLinks (rstripUrl baseUrl)) . lookupHeader "Link" $ response
 
   case eitherDecode nonEmptyBody of
     Right payload -> return (payload, pageLinks)
@@ -134,7 +138,6 @@ queryGitHubPageIO GitHubManager{..} ghEndpoint = do
           , decodeErrorResponse = Text.decodeUtf8 $ ByteStringL.toStrict body
           }
   where
-    ghUrl = "https://api.github.com"
     lookupHeader headerName = fmap Text.decodeUtf8 . lookup headerName . responseHeaders
 
 data DecodeError = DecodeError

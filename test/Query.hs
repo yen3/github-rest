@@ -35,6 +35,7 @@ goldens name fp action = goldenVsString name ("test/goldens/" ++ fp) $ runGitHub
         { token = Nothing
         , userAgent = "github-rest"
         , apiVersion = "v3"
+        , baseUrl = "https://api.github.com"
         }
 
 showResult :: Monad m => m (Either Value Value) -> m ByteString

@@ -4,6 +4,7 @@
 module GitHub.REST.PageLinks (
   PageLinks (..),
   parsePageLinks,
+  rstripUrl,
 ) where
 
 import Data.Maybe (fromMaybe)
@@ -41,13 +42,13 @@ instance Monoid PageLinks where
   mappend = (<>)
 #endif
 
-parsePageLinks :: Text -> PageLinks
-parsePageLinks = foldl resolve mempty . split ","
+parsePageLinks :: Text -> Text -> PageLinks
+parsePageLinks baseUrl = foldl resolve mempty . split ","
   where
     resolve :: PageLinks -> Text -> PageLinks
     resolve pageLinks "" = pageLinks
     resolve pageLinks link =
-      let (rel, url) = parsePageLink link
+      let (rel, url) = parsePageLink baseUrl link
        in case rel of
             "first" -> pageLinks{pageFirst = Just url}
             "prev" -> pageLinks{pagePrev = Just url}
@@ -61,8 +62,8 @@ parsePageLinks = foldl resolve mempty . split ","
 
  Returns ("next", "/search/code?q=addClass+user%3Amozilla&page=2")
 -}
-parsePageLink :: Text -> (Text, Text)
-parsePageLink link = fromMaybe (error $ "Unknown page link: " ++ show link) $ do
+parsePageLink :: Text -> Text -> (Text, Text)
+parsePageLink baseUrl link = fromMaybe (error $ "Unknown page link: " ++ show link) $ do
   (linkUrl, linkRel) <- case split ";" link of
     [url, rel] -> pure (url, rel)
     _ -> mempty
@@ -74,7 +75,7 @@ parsePageLink link = fromMaybe (error $ "Unknown page link: " ++ show link) $ do
 
   pure (rel, url)
   where
-    ghUrl = "https://api.github.com"
+    ghUrl = rstripUrl baseUrl
 
 {- Helpers -}
 
@@ -87,3 +88,6 @@ dropAround :: Text -> Text -> Text -> Text
 dropAround begin end s = fromMaybe badDrop $ Text.stripSuffix end =<< Text.stripPrefix begin s
   where
     badDrop = error $ "Expected value to wrap within " ++ Text.unpack begin ++ "..." ++ Text.unpack end ++ ": " ++ Text.unpack s
+
+rstripUrl :: Text -> Text
+rstripUrl s = if Text.last s == '/' then Text.init s else s
