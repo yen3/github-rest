@@ -4,7 +4,7 @@ cabal-version: >= 1.10
 --
 -- see: https://github.com/sol/hpack
 
-name:           github-rest
+name:           github-rest-yen3
 version:        1.1.2
 synopsis:       Query the GitHub REST API programmatically
 description:    Query the GitHub REST API programmatically, which can provide a more
