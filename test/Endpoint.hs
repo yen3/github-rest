@@ -53,6 +53,7 @@ mkGHEndpoint endpointComponents endpointVals =
     , endpoint = concatComponents endpointComponents
     , endpointVals
     , ghData = []
+    , extraHeaders = []
     }
 
 concatComponents :: [EndpointComponent] -> Text

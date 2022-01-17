@@ -26,6 +26,7 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as Text
 import Network.HTTP.Types (Method, StdMethod, renderStdMethod)
+import Network.HTTP.Types.Header (Header)
 
 import GitHub.REST.KeyValue (KeyValue, kvToText)
 
@@ -44,6 +45,9 @@ data GHEndpoint = GHEndpoint
   , -- | Key-value pairs to send in the request body; e.g.
     -- @[ "sort" := ("created" :: Text), "direction" := ("asc" :: Text) ]@
     ghData :: GitHubData
+  , -- | Key-value pairs to present extra request headers
+    -- @[ (CI "Extra-Header-Key", "Header-Value") ]
+    extraHeaders :: [Header]
   }
 
 -- | Return the endpoint path, populated by the values in 'endpointVals'.

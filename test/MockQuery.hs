@@ -105,6 +105,7 @@ runMockREST f results = (`evalStateT` results) $ unMockREST $ f ghEndpoint
         , endpoint = "/"
         , endpointVals = []
         , ghData = []
+        , extraHeaders = []
         }
 
 instance MonadGitHubREST MockREST where

@@ -114,6 +114,7 @@ queryGitHubPageIO GitHubManager{..} ghEndpoint = do
               , (hUserAgent, userAgent)
               ]
                 ++ maybe [] ((: []) . (hAuthorization,) . fromToken) token
+                ++ extraHeaders ghEndpoint
           , requestBody = RequestBodyLBS $ encode $ kvToValue $ ghData ghEndpoint
           , checkResponse = throwErrorStatusCodes
           }

@@ -54,4 +54,5 @@ getGist gistId gistSha =
         , "sha" := gistSha
         ]
     , ghData = []
+    , extraHeaders = []
     }
