@@ -39,7 +39,7 @@ library
       GitHub.REST.Monad.Class
       GitHub.REST.PageLinks
   other-modules:
-      Paths_github_rest
+      Paths_github_rest_yen3
   hs-source-dirs:
       src
   ghc-options: -Wall
@@ -73,7 +73,7 @@ test-suite github-rest-test
       MockQuery
       PageLinks
       Query
-      Paths_github_rest
+      Paths_github_rest_yen3
   hs-source-dirs:
       test
   ghc-options: -Wall
