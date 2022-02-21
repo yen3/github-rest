@@ -44,12 +44,15 @@ data Token
     AccessToken ByteString
   | -- | https://developer.github.com/apps/building-github-apps/authenticating-with-github-apps/#authenticating-as-a-github-app
     BearerToken ByteString
+    -- | https://docs.github.com/en/enterprise-server@3.1/rest/guides/getting-started-with-the-rest-api#using-personal-access-tokens
+  | UserAccessToken ByteString ByteString
   deriving (Show)
 
 fromToken :: Token -> ByteString
 fromToken = \case
   AccessToken t -> "token " <> t
   BearerToken t -> "bearer " <> t
+  UserAccessToken username password -> "Basic" <> username <> ":" <> password
 
 -- | The ID of your GitHub application
 type AppId = Int

@@ -6,3 +6,6 @@ flags:
 
 ghc-options:
   '$locals': -Werror
+
+extra-deps:
+- base64-bytestring-1.2.1.0@sha256:50ec0e229255d4c45cbdd568da011311b8887f304b931564886016f4984334d8,2396
