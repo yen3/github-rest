@@ -22,21 +22,22 @@ module GitHub.REST.Auth (
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as ByteString
 
-#if !MIN_VERSION_base(4,11,0)
-import Data.Monoid ((<>))
-#endif
+
+
+
 import Data.Text (Text)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import Data.Time (addUTCTime, getCurrentTime)
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import qualified Web.JWT as JWT
+import qualified Data.ByteString.Base64 as B64
 
-#if MIN_VERSION_jwt(0,11,0)
-type EncodeSigner = JWT.EncodeSigner
-#else
+
+
+
 type EncodeSigner = JWT.Signer
-#endif
+
 
 -- | The token to use to authenticate with GitHub.
 data Token
@@ -52,7 +53,7 @@ fromToken :: Token -> ByteString
 fromToken = \case
   AccessToken t -> "token " <> t
   BearerToken t -> "bearer " <> t
-  UserAccessToken username password -> "Basic" <> username <> ":" <> password
+  UserAccessToken username password -> "Basic " <> B64.encode (username <> ":" <> password)
 
 -- | The ID of your GitHub application
 type AppId = Int
@@ -74,11 +75,11 @@ getJWTToken signer appId = mkToken <$> getNow
     getNow = addUTCTime (-1) <$> getCurrentTime
 
 signToken :: EncodeSigner -> JWT.JWTClaimsSet -> Text
-#if MIN_VERSION_jwt(0,10,0)
+
 signToken = flip JWT.encodeSigned mempty
-#else
-signToken = JWT.encodeSigned
-#endif
+
+
+
 
 -- | Load a RSA private key as a Signer from the given file path.
 loadSigner :: FilePath -> IO EncodeSigner
@@ -87,8 +88,7 @@ loadSigner file = maybe badSigner return . readSigner =<< ByteString.readFile fi
     badSigner = fail $ "Not a valid RSA private key file: " ++ file
     readSigner = fmap toEncodeRSAPrivateKey . JWT.readRsaSecret
 
-#if MIN_VERSION_jwt(0,11,0)
-    toEncodeRSAPrivateKey = JWT.EncodeRSAPrivateKey
-#else
+
+
+
     toEncodeRSAPrivateKey = JWT.RSAPrivateKey
-#endif
