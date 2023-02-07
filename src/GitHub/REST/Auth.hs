@@ -35,8 +35,12 @@ import qualified Data.ByteString.Base64 as B64
 
 
 
-
+#if MIN_VERSION_jwt(0,11,0)
+type EncodeSigner = JWT.EncodeSigner
+#else
 type EncodeSigner = JWT.Signer
+#endif
+
 
 
 -- | The token to use to authenticate with GitHub.
@@ -88,7 +92,8 @@ loadSigner file = maybe badSigner return . readSigner =<< ByteString.readFile fi
     badSigner = fail $ "Not a valid RSA private key file: " ++ file
     readSigner = fmap toEncodeRSAPrivateKey . JWT.readRsaSecret
 
-
-
-
+#if MIN_VERSION_jwt(0,11,0)
+    toEncodeRSAPrivateKey = JWT.EncodeRSAPrivateKey
+#else
     toEncodeRSAPrivateKey = JWT.RSAPrivateKey
+#endif
